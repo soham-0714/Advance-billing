@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mall Bill Generator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202124;
+      --muted: #646a73;
+      --line: #d9dedb;
+      --paper: #ffffff;
+      --wash: #f3f6f4;
+      --teal: #007c70;
+      --teal-dark: #006157;
+      --coral: #e64f3c;
+      --sun: #f7c948;
+      --mint: #b8f2d0;
+      --violet-free: #2f6f73;
+      --shadow: 0 18px 46px rgba(20, 33, 30, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(0, 124, 112, 0.08), transparent 30%),
+        linear-gradient(315deg, rgba(230, 79, 60, 0.09), transparent 32%),
+        var(--wash);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app-shell {
+      width: min(1480px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 18px 0 28px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: stretch;
+      min-height: 120px;
+      margin-bottom: 18px;
+    }
+
+    .brand-panel {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 190px;
+      gap: 18px;
+      align-items: center;
+      min-height: 120px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 8px;
+      color: var(--teal-dark);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .pulse-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--coral);
+      box-shadow: 0 0 0 rgba(230, 79, 60, 0.45);
+      animation: pulse 1.7s infinite;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      line-height: 1.05;
+    }
+
+    .subline {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      max-width: 780px;
+    }
+
+    .brand-image {
+      width: 100%;
+      height: 92px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      filter: saturate(1.05) contrast(1.02);
+    }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(92px, 1fr));
+      gap: 10px;
+      align-content: stretch;
+    }
+
+    .stat {
+      display: grid;
+      align-content: center;
+      min-width: 112px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      animation: riseIn 0.55s ease both;
+    }
+
+    .stat:nth-child(2) {
+      animation-delay: 0.08s;
+    }
+
+    .stat:nth-child(3) {
+      animation-delay: 0.16s;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      margin-top: 6px;
+      font-size: 1.2rem;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(360px, 0.82fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel,
+    .receipt-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 16px;
+      margin-bottom: 18px;
+      animation: riseIn 0.5s ease both;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .panel-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 6px 10px;
+      border: 1px solid rgba(0, 124, 112, 0.28);
+      border-radius: 999px;
+      color: var(--teal-dark);
+      background: rgba(184, 242, 208, 0.38);
+      font-size: 0.8rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 43px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+      padding: 10px 11px;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 4px rgba(0, 124, 112, 0.13);
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      min-height: 18px;
+      accent-color: var(--teal);
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 43px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .check-row label {
+      color: var(--ink);
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-transform: none;
+    }
+
+    .item-entry {
+      display: grid;
+      grid-template-columns: minmax(150px, 1.45fr) repeat(4, minmax(76px, 0.6fr)) auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      background: var(--teal);
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(0, 124, 112, 0.22);
+      background: var(--teal-dark);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .btn.secondary {
+      color: var(--ink);
+      border-color: var(--line);
+      background: #fff;
+    }
+
+    .btn.secondary:hover {
+      box-shadow: 0 10px 20px rgba(32, 33, 36, 0.1);
+      background: #f8fbfa;
+    }
+
+    .btn.warn {
+      background: var(--coral);
+    }
+
+    .btn.warn:hover {
+      background: #c93524;
+      box-shadow: 0 12px 24px rgba(230, 79, 60, 0.22);
+    }
+
+    .btn.small {
+      min-height: 34px;
+      padding: 7px 10px;
+      font-size: 0.86rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 790px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f8fbfa;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+    }
+
+    tbody tr {
+      animation: rowPop 0.28s ease both;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .money {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .receipt-panel {
+      position: sticky;
+      top: 12px;
+      overflow: hidden;
+      animation: riseIn 0.6s ease both;
+    }
+
+    .receipt-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(0, 124, 112, 0.12), rgba(247, 201, 72, 0.16), rgba(230, 79, 60, 0.12)),
+        #fff;
+    }
+
+    .receipt {
+      position: relative;
+      margin: 0;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #e2e8e4;
+      overflow: hidden;
+    }
+
+    .receipt::before,
+    .receipt::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 12px;
+      background:
+        linear-gradient(45deg, transparent 33.33%, #fff 33.33%, #fff 66.66%, transparent 66.66%),
+        linear-gradient(-45deg, transparent 33.33%, #fff 33.33%, #fff 66.66%, transparent 66.66%);
+      background-size: 18px 24px;
+      pointer-events: none;
+    }
+
+    .receipt::before {
+      top: -1px;
+      transform: rotate(180deg);
+    }
+
+    .receipt::after {
+      bottom: -1px;
+    }
+
+    .receipt-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: -20px -20px 16px;
+      padding: 12px 20px;
+      color: #fff;
+      background: linear-gradient(90deg, var(--teal-dark), var(--teal), var(--coral));
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .receipt-copy {
+      padding: 5px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.14);
+      font-size: 0.76rem;
+    }
+
+    .receipt-brand {
+      display: grid;
+      grid-template-columns: 62px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 2px dashed #cbd4cf;
+    }
+
+    .logo-box {
+      display: grid;
+      place-items: center;
+      width: 62px;
+      height: 62px;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, var(--teal), var(--sun));
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.3rem;
+    }
+
+    .receipt h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      overflow-wrap: anywhere;
+    }
+
+    .receipt p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .receipt-tagline {
+      color: var(--teal-dark) !important;
+      font-weight: 800;
+    }
+
+    .receipt-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px 0;
+      border-bottom: 1px dashed #cbd4cf;
+    }
+
+    .meta-block {
+      min-width: 0;
+    }
+
+    .meta-block span {
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .meta-block strong {
+      display: block;
+      margin-top: 3px;
+      overflow-wrap: anywhere;
+    }
+
+    .meta-block small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .receipt-items {
+      margin-top: 14px;
+      border: 1px solid #dfe6e2;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .receipt-item-head {
+      display: grid;
+      grid-template-columns: 1fr 112px;
+      gap: 12px;
+      padding: 9px 11px;
+      color: #fff;
+      background: var(--ink);
+      font-size: 0.74rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .receipt-line {
+      display: grid;
+      grid-template-columns: 1fr 112px;
+      gap: 12px;
+      padding: 10px 11px;
+      border-bottom: 1px solid #edf1ef;
+    }
+
+    .receipt-line:nth-child(odd) {
+      background: #fbfdfc;
+    }
+
+    .receipt-line:last-child {
+      border-bottom: 0;
+    }
+
+    .receipt-line small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+
+    .receipt-line-price {
+      text-align: right;
+    }
+
+    .receipt-line-price strong {
+      display: block;
+    }
+
+    .totals {
+      margin-top: 14px;
+      border-top: 2px dashed #cbd4cf;
+      padding-top: 12px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 6px 0;
+      color: var(--muted);
+    }
+
+    .total-row.grand {
+      align-items: center;
+      margin-top: 8px;
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--ink);
+      background: linear-gradient(90deg, rgba(184, 242, 208, 0.58), rgba(247, 201, 72, 0.27));
+      font-weight: 900;
+      font-size: 1.15rem;
+    }
+
+    .paid-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 10px;
+      border: 1px solid rgba(0, 124, 112, 0.3);
+      border-radius: 8px;
+      color: var(--teal-dark);
+      background: rgba(184, 242, 208, 0.4);
+      font-weight: 800;
+    }
+
+    .notes-box {
+      margin-top: 14px;
+      padding: 10px;
+      border: 1px dashed #cbd4cf;
+      border-radius: 8px;
+      color: var(--muted);
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .signature {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .signature span:last-child::before {
+      content: "";
+      display: block;
+      width: 150px;
+      max-width: 100%;
+      height: 1px;
+      margin: 0 0 7px auto;
+      background: #aeb9b3;
+    }
+
+    .receipt-footer {
+      display: grid;
+      grid-template-columns: 1fr 138px;
+      gap: 14px;
+      align-items: end;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px dashed #cbd4cf;
+    }
+
+    .receipt-footer strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--teal-dark);
+    }
+
+    .receipt-footer span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .barcode {
+      height: 48px;
+      border: 1px solid #cbd4cf;
+      border-radius: 8px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #202124 0 2px,
+          transparent 2px 5px,
+          #202124 5px 7px,
+          transparent 7px 12px
+        );
+    }
+
+    .saved-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .saved-bill {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .saved-bill strong,
+    .saved-bill span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .saved-bill span {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 40;
+      max-width: min(420px, calc(100% - 36px));
+      padding: 13px 15px;
+      border: 1px solid rgba(0, 124, 112, 0.28);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      transform: translateY(120%);
+      opacity: 0;
+      transition: transform 0.24s ease, opacity 0.24s ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(230, 79, 60, 0.45);
+      }
+      70% {
+        box-shadow: 0 0 0 12px rgba(230, 79, 60, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(230, 79, 60, 0);
+      }
+    }
+
+    @keyframes riseIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes rowPop {
+      from {
+        opacity: 0;
+        transform: scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 1160px) {
+      .workspace,
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .receipt-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-shell {
+        width: min(100% - 16px, 1480px);
+        padding-top: 8px;
+      }
+
+      .brand-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-image {
+        height: 150px;
+      }
+
+      .stats-strip,
+      .form-grid,
+      .form-grid.two,
+      .item-entry,
+      .receipt-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .receipt {
+        padding: 14px;
+      }
+
+      .panel-head {
+        display: grid;
+      }
+
+      h1 {
+        font-size: 1.55rem;
+      }
+
+      .receipt-topline {
+        flex-wrap: wrap;
+      }
+
+      .receipt-footer {
+        grid-template-columns: 1fr;
+      }
+
+      .receipt-item-head,
+      .receipt-line {
+        grid-template-columns: minmax(0, 1fr) 96px;
+      }
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 8mm;
+      }
+
+      html,
+      body {
+        width: auto;
+        min-height: auto;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .app-shell {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body * {
+        visibility: hidden;
+      }
+
+      .receipt,
+      .receipt * {
+        visibility: visible;
+      }
+
+      .receipt-panel {
+        position: static;
+        box-shadow: none;
+        border: 0;
+        background: #fff;
+      }
+
+      .receipt-tools,
+      .left-column,
+      .topbar {
+        display: none !important;
+      }
+
+      .workspace {
+        display: block;
+      }
+
+      .right-column {
+        width: 100%;
+      }
+
+      .receipt {
+        position: static;
+        width: 100%;
+        min-height: 270mm;
+        padding: 9mm;
+        border: 1px solid #111;
+        border-radius: 0;
+        box-shadow: none;
+        color: #111;
+      }
+
+      .receipt::before,
+      .receipt::after {
+        display: none;
+      }
+
+      .receipt-topline {
+        margin: -9mm -9mm 6mm;
+        padding: 5mm 9mm;
+        background: #006157 !important;
+      }
+
+      .receipt-brand,
+      .receipt-meta,
+      .receipt-line,
+      .total-row,
+      .receipt-footer,
+      .signature,
+      .notes-box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .receipt-items {
+        border-color: #111;
+      }
+
+      .receipt-item-head {
+        background: #202124 !important;
+      }
+
+      .total-row.grand {
+        border: 1px solid #111;
+        background: #eef7ef !important;
+      }
+
+      .paid-chip {
+        border-color: #111;
+        background: #eef7ef !important;
+      }
+
+      .notes-box {
+        color: #222;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="topbar" aria-label="Billing dashboard">
+      <div class="brand-panel">
+        <div class="brand-copy">
+          <p class="eyebrow"><span class="pulse-dot"></span> Live mall counter billing</p>
+          <h1>Animated Shopping Mall Bill Generator</h1>
+          <p class="subline">Enter customer details, add products in real time, choose payment mode, save bills, print receipts, and send the bill to WhatsApp.</p>
+        </div>
+        <img class="brand-image" alt="Shopping counter with bags and payment terminal" src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=640&q=80">
+      </div>
+
+      <div class="stats-strip" aria-label="Live bill totals">
+        <div class="stat">
+          <span>Items</span>
+          <strong id="statItems">0</strong>
+        </div>
+        <div class="stat">
+          <span>Saved</span>
+          <strong id="statSaved">0</strong>
+        </div>
+        <div class="stat">
+          <span>Total</span>
+          <strong id="statTotal">Rs. 0.00</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="left-column">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Store And Customer Details</h2>
+              <p>Everything updates on the receipt instantly.</p>
+            </div>
+            <span class="pill">Editable</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="storeName">Store Name</label>
+              <input id="storeName" type="text" value="Premium Mall Mart" autocomplete="organization">
+            </div>
+            <div class="field">
+              <label for="storePhone">Store Phone</label>
+              <input id="storePhone" type="tel" value="+91 98765 43210">
+            </div>
+            <div class="field">
+              <label for="storeGst">GST / Tax ID</label>
+              <input id="storeGst" type="text" value="GSTIN: 22AAAAA0000A1Z5">
+            </div>
+            <div class="field full">
+              <label for="storeAddress">Store Address</label>
+              <textarea id="storeAddress">2nd Floor, City Center Mall, Main Road, Kolkata</textarea>
+            </div>
+            <div class="field">
+              <label for="invoiceNo">Invoice Number</label>
+              <input id="invoiceNo" type="text">
+            </div>
+            <div class="field">
+              <label for="invoiceDate">Bill Date And Time</label>
+              <input id="invoiceDate" type="datetime-local">
+            </div>
+            <div class="field">
+              <label for="cashierName">Cashier</label>
+              <input id="cashierName" type="text" value="Counter 01">
+            </div>
+            <div class="field">
+              <label for="customerName">Customer Name</label>
+              <input id="customerName" type="text" value="Walk-in Customer" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="customerPhone">Customer WhatsApp Number</label>
+              <input id="customerPhone" type="tel" placeholder="Example: 919876543210">
+            </div>
+            <div class="field">
+              <label for="membership">Customer Type</label>
+              <select id="membership">
+                <option value="0">Regular customer</option>
+                <option value="2">Silver member - 2% off</option>
+                <option value="5">Gold member - 5% off</option>
+                <option value="8">Platinum member - 8% off</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Add Items</h2>
+              <p>Add, edit, duplicate, or remove products without refreshing the page.</p>
+            </div>
+            <span class="pill">Real time</span>
+          </div>
+
+          <form id="itemForm" class="item-entry">
+            <div class="field">
+              <label for="itemName">Item Name</label>
+              <input id="itemName" type="text" placeholder="T-shirt, shoes, grocery" required>
+            </div>
+            <div class="field">
+              <label for="itemQty">Qty</label>
+              <input id="itemQty" type="number" min="0.01" step="0.01" value="1" required>
+            </div>
+            <div class="field">
+              <label for="itemPrice">Price</label>
+              <input id="itemPrice" type="number" min="0" step="0.01" placeholder="999" required>
+            </div>
+            <div class="field">
+              <label for="itemDiscount">Disc %</label>
+              <input id="itemDiscount" type="number" min="0" max="100" step="0.01" value="0">
+            </div>
+            <div class="field">
+              <label for="itemTax">Tax %</label>
+              <input id="itemTax" type="number" min="0" max="100" step="0.01" value="18">
+            </div>
+            <button class="btn" type="submit" id="itemSubmit">Add Item</button>
+          </form>
+
+          <div class="table-wrap">
+            <table aria-label="Bill items">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Disc</th>
+                  <th>Tax</th>
+                  <th>Total</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+            <div id="emptyItems" class="empty-state">No items yet. Add a product to start the bill.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Payment And Extra Details</h2>
+              <p>Choose payment mode, add premium services, and save the final receipt.</p>
+            </div>
+            <span class="pill">Premium ready</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="paymentMode">Payment Mode</label>
+              <select id="paymentMode">
+                <option>Cash</option>
+                <option>Card</option>
+                <option>UPI</option>
+                <option>Wallet</option>
+                <option>Net Banking</option>
+                <option>Split Payment</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="transactionId">Transaction ID</label>
+              <input id="transactionId" type="text" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label for="roundOff">Round Off</label>
+              <input id="roundOff" type="number" step="0.01" value="0">
+            </div>
+            <div class="field">
+              <label for="serviceCharge">Service / Packing Charge</label>
+              <input id="serviceCharge" type="number" min="0" step="0.01" value="0">
+            </div>
+            <div class="field">
+              <label for="couponDiscount">Coupon Discount</label>
+              <input id="couponDiscount" type="number" min="0" step="0.01" value="0">
+            </div>
+            <div class="field">
+              <label for="amountPaid">Amount Paid</label>
+              <input id="amountPaid" type="number" min="0" step="0.01" value="0">
+            </div>
+            <div class="field full">
+              <div class="check-row">
+                <input id="premiumPacking" type="checkbox">
+                <label for="premiumPacking">Add premium gift packing charge of Rs. 99.00</label>
+              </div>
+            </div>
+            <div class="field full">
+              <label for="billNotes">Bill Notes / Return Policy</label>
+              <textarea id="billNotes">Thank you for shopping with us. Exchange is allowed within 7 days with this bill.</textarea>
+            </div>
+          </div>
+
+          <div class="button-row" style="margin-top: 14px;">
+            <button class="btn" type="button" id="saveBillBtn">Save Bill</button>
+            <button class="btn secondary" type="button" id="newBillBtn">New Bill</button>
+            <button class="btn secondary" type="button" id="sampleBtn">Load Sample Items</button>
+            <button class="btn warn" type="button" id="clearItemsBtn">Clear Items</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Saved Bills</h2>
+              <p>Open previous bills and edit them again.</p>
+            </div>
+            <span class="pill">Local storage</span>
+          </div>
+          <div id="savedList" class="saved-list"></div>
+        </section>
+      </div>
+
+      <aside class="right-column">
+        <section class="receipt-panel" aria-label="Receipt preview">
+          <div class="receipt-tools">
+            <div class="button-row">
+              <button class="btn small" type="button" id="printBtn">Print Bill</button>
+              <button class="btn small secondary" type="button" id="whatsappBtn">Send WhatsApp</button>
+            </div>
+            <span class="pill" id="balancePill">Balance Rs. 0.00</span>
+          </div>
+
+          <article class="receipt" id="receipt">
+            <div class="receipt-topline">
+              <span>Tax Invoice</span>
+              <span class="receipt-copy">Customer Copy</span>
+            </div>
+
+            <div class="receipt-brand">
+              <div class="logo-box" id="receiptLogo">PM</div>
+              <div>
+                <h3 id="receiptStore">Premium Mall Mart</h3>
+                <p class="receipt-tagline">Fast checkout. Fresh style. Happy shopping.</p>
+                <p id="receiptAddress">2nd Floor, City Center Mall, Main Road, Kolkata</p>
+                <p id="receiptContact">+91 98765 43210 | GSTIN: 22AAAAA0000A1Z5</p>
+              </div>
+            </div>
+
+            <div class="receipt-meta">
+              <div class="meta-block">
+                <span>Invoice</span>
+                <strong id="receiptInvoice">INV-0001</strong>
+              </div>
+              <div class="meta-block">
+                <span>Date</span>
+                <strong id="receiptDate">Today</strong>
+              </div>
+              <div class="meta-block">
+                <span>Payment</span>
+                <strong id="receiptPaymentMode">Cash</strong>
+              </div>
+              <div class="meta-block">
+                <span>Bill To</span>
+                <strong id="receiptCustomer">Walk-in Customer</strong>
+                <small id="receiptCustomerPhone">No WhatsApp number</small>
+              </div>
+              <div class="meta-block">
+                <span>Cashier</span>
+                <strong id="receiptCashier">Counter 01</strong>
+              </div>
+              <div class="meta-block">
+                <span>Items</span>
+                <strong id="receiptItemCount">0 items</strong>
+              </div>
+            </div>
+
+            <div class="receipt-items" id="receiptItems">
+              <div class="empty-state">Items will appear here.</div>
+            </div>
+
+            <div class="totals">
+              <div class="total-row"><span>Subtotal</span><strong id="subtotalText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Item Discount</span><strong id="discountText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Member Discount</span><strong id="memberDiscountText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Coupon Discount</span><strong id="couponText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Tax</span><strong id="taxText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Charges</span><strong id="chargesText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Round Off</span><strong id="roundOffText">Rs. 0.00</strong></div>
+              <div class="total-row grand"><span>Grand Total</span><strong id="grandText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Paid</span><strong id="paidText">Rs. 0.00</strong></div>
+              <div class="total-row"><span>Balance</span><strong id="balanceText">Rs. 0.00</strong></div>
+            </div>
+
+            <div class="paid-chip" id="paymentText">Payment: Cash</div>
+            <div class="notes-box" id="notesText">Thank you for shopping with us. Exchange is allowed within 7 days with this bill.</div>
+            <div class="signature">
+              <span>Customer Copy</span>
+              <span>Authorized Signature</span>
+            </div>
+
+            <div class="receipt-footer">
+              <div>
+                <strong>Thank you for shopping with us.</strong>
+                <span>Please keep this bill for exchange, warranty, or payment reference.</span>
+              </div>
+              <div class="barcode" aria-hidden="true"></div>
+            </div>
+          </article>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "mallBillGenerator.savedBills.v1";
+
+    const state = {
+      items: [],
+      editingId: null,
+      savedBills: []
+    };
+
+    const fields = {};
+    const ids = [
+      "storeName", "storePhone", "storeGst", "storeAddress", "invoiceNo", "invoiceDate",
+      "cashierName", "customerName", "customerPhone", "membership", "paymentMode",
+      "transactionId", "roundOff", "serviceCharge", "couponDiscount", "amountPaid",
+      "premiumPacking", "billNotes", "itemForm", "itemName", "itemQty", "itemPrice", "itemDiscount",
+      "itemTax", "itemSubmit", "itemsBody", "emptyItems", "saveBillBtn", "newBillBtn",
+      "sampleBtn", "clearItemsBtn", "savedList", "printBtn", "whatsappBtn", "toast",
+      "receiptLogo", "receiptStore", "receiptAddress", "receiptContact", "receiptInvoice",
+      "receiptDate", "receiptPaymentMode", "receiptCustomer", "receiptCustomerPhone",
+      "receiptCashier", "receiptItemCount", "receiptItems", "subtotalText",
+      "discountText", "memberDiscountText", "couponText", "taxText", "chargesText",
+      "roundOffText", "grandText", "paidText", "balanceText", "paymentText", "notesText",
+      "statItems", "statSaved", "statTotal", "balancePill"
+    ];
+
+    ids.forEach((id) => {
+      fields[id] = document.getElementById(id);
+    });
+
+    function money(value) {
+      const number = Number.isFinite(value) ? value : 0;
+      return "Rs. " + number.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function numberValue(input, fallback = 0) {
+      const value = parseFloat(input?.value);
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    function cleanText(value, fallback = "") {
+      const text = String(value ?? "").trim();
+      return text || fallback;
+    }
+
+    function makeId(prefix = "id") {
+      return prefix + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function showToast(message) {
+      fields.toast.textContent = message;
+      fields.toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        fields.toast.classList.remove("show");
+      }, 2600);
+    }
+
+    function setDefaultDate() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      fields.invoiceDate.value = now.toISOString().slice(0, 16);
+    }
+
+    function nextInvoiceNo() {
+      const date = new Date();
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const suffix = String(state.savedBills.length + 1).padStart(4, "0");
+      return `INV-${y}${m}${d}-${suffix}`;
+    }
+
+    function getInitials(name) {
+      return cleanText(name, "PM")
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((word) => word[0] || "")
+        .join("")
+        .toUpperCase();
+    }
+
+    function calculateItem(item) {
+      const qty = Math.max(0, Number(item.qty) || 0);
+      const price = Math.max(0, Number(item.price) || 0);
+      const discountRate = Math.min(100, Math.max(0, Number(item.discount) || 0));
+      const taxRate = Math.max(0, Number(item.tax) || 0);
+      const gross = qty * price;
+      const discount = gross * (discountRate / 100);
+      const taxable = Math.max(0, gross - discount);
+      const tax = taxable * (taxRate / 100);
+      const total = taxable + tax;
+      return { gross, discount, taxable, tax, total };
+    }
+
+    function calculateTotals() {
+      const itemTotals = state.items.map(calculateItem);
+      const subtotal = itemTotals.reduce((sum, item) => sum + item.gross, 0);
+      const itemDiscount = itemTotals.reduce((sum, item) => sum + item.discount, 0);
+      const tax = itemTotals.reduce((sum, item) => sum + item.tax, 0);
+      const taxableAfterItemDiscount = Math.max(0, subtotal - itemDiscount);
+      const memberRate = numberValue(fields.membership);
+      const memberDiscount = taxableAfterItemDiscount * (memberRate / 100);
+      const couponDiscount = Math.max(0, numberValue(fields.couponDiscount));
+      const serviceCharge = Math.max(0, numberValue(fields.serviceCharge));
+      const premiumCharge = fields.premiumPacking.checked ? 99 : 0;
+      const charges = serviceCharge + premiumCharge;
+      const roundOff = numberValue(fields.roundOff);
+      const grossPayable = taxableAfterItemDiscount + tax + charges - memberDiscount - couponDiscount + roundOff;
+      const grand = Math.max(0, grossPayable);
+      const paid = Math.max(0, numberValue(fields.amountPaid));
+      const balance = Math.max(0, grand - paid);
+      const change = Math.max(0, paid - grand);
+      return {
+        subtotal,
+        itemDiscount,
+        memberDiscount,
+        couponDiscount,
+        tax,
+        charges,
+        roundOff,
+        grand,
+        paid,
+        balance,
+        change
+      };
+    }
+
+    function getBillData() {
+      return {
+        storeName: cleanText(fields.storeName.value, "Premium Mall Mart"),
+        storePhone: cleanText(fields.storePhone.value),
+        storeGst: cleanText(fields.storeGst.value),
+        storeAddress: cleanText(fields.storeAddress.value),
+        invoiceNo: cleanText(fields.invoiceNo.value, nextInvoiceNo()),
+        invoiceDate: fields.invoiceDate.value,
+        cashierName: cleanText(fields.cashierName.value, "Counter 01"),
+        customerName: cleanText(fields.customerName.value, "Walk-in Customer"),
+        customerPhone: cleanText(fields.customerPhone.value),
+        membership: fields.membership.value,
+        paymentMode: fields.paymentMode.value,
+        transactionId: cleanText(fields.transactionId.value),
+        roundOff: numberValue(fields.roundOff),
+        serviceCharge: numberValue(fields.serviceCharge),
+        couponDiscount: numberValue(fields.couponDiscount),
+        amountPaid: numberValue(fields.amountPaid),
+        premiumPacking: fields.premiumPacking.checked,
+        billNotes: cleanText(fields.billNotes.value),
+        items: cloneItems(state.items),
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function applyBillData(data) {
+      fields.storeName.value = data.storeName ?? "";
+      fields.storePhone.value = data.storePhone ?? "";
+      fields.storeGst.value = data.storeGst ?? "";
+      fields.storeAddress.value = data.storeAddress ?? "";
+      fields.invoiceNo.value = data.invoiceNo ?? nextInvoiceNo();
+      fields.invoiceDate.value = data.invoiceDate || fields.invoiceDate.value;
+      fields.cashierName.value = data.cashierName ?? "";
+      fields.customerName.value = data.customerName ?? "";
+      fields.customerPhone.value = data.customerPhone ?? "";
+      fields.membership.value = String(data.membership ?? "0");
+      fields.paymentMode.value = data.paymentMode ?? "Cash";
+      fields.transactionId.value = data.transactionId ?? "";
+      fields.roundOff.value = Number(data.roundOff ?? 0);
+      fields.serviceCharge.value = Number(data.serviceCharge ?? 0);
+      fields.couponDiscount.value = Number(data.couponDiscount ?? 0);
+      fields.amountPaid.value = Number(data.amountPaid ?? 0);
+      fields.premiumPacking.checked = Boolean(data.premiumPacking);
+      fields.billNotes.value = data.billNotes ?? "";
+      state.items = Array.isArray(data.items) ? data.items : [];
+      state.editingId = null;
+      fields.itemSubmit.textContent = "Add Item";
+      render();
+    }
+
+    function formatDate(value) {
+      if (!value) return "Not selected";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      });
+    }
+
+    function cloneItems(items) {
+      return items.map((item) => ({ ...item }));
+    }
+
+    function renderItemsTable() {
+      fields.itemsBody.innerHTML = "";
+      fields.emptyItems.classList.toggle("hidden", state.items.length > 0);
+
+      state.items.forEach((item) => {
+        const itemMath = calculateItem(item);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${escapeHtml(item.name)}</td>
+          <td>${item.qty}</td>
+          <td class="money">${money(Number(item.price) || 0)}</td>
+          <td>${Number(item.discount) || 0}%</td>
+          <td>${Number(item.tax) || 0}%</td>
+          <td class="money">${money(itemMath.total)}</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn small secondary" type="button" data-action="edit" data-id="${item.id}">Edit</button>
+              <button class="btn small secondary" type="button" data-action="copy" data-id="${item.id}">Copy</button>
+              <button class="btn small warn" type="button" data-action="delete" data-id="${item.id}">Delete</button>
+            </div>
+          </td>
+        `;
+        fields.itemsBody.appendChild(row);
+      });
+    }
+
+    function renderReceiptItems() {
+      fields.receiptItems.innerHTML = "";
+      if (!state.items.length) {
+        fields.receiptItems.innerHTML = '<div class="empty-state">Items will appear here.</div>';
+        return;
+      }
+
+      const head = document.createElement("div");
+      head.className = "receipt-item-head";
+      head.innerHTML = "<span>Product Details</span><span>Amount</span>";
+      fields.receiptItems.appendChild(head);
+
+      state.items.forEach((item) => {
+        const itemMath = calculateItem(item);
+        const line = document.createElement("div");
+        line.className = "receipt-line";
+        line.innerHTML = `
+          <div>
+            <strong>${escapeHtml(item.name)}</strong>
+            <small>${item.qty} x ${money(Number(item.price) || 0)} | Disc ${Number(item.discount) || 0}% | Tax ${Number(item.tax) || 0}%</small>
+          </div>
+          <div class="receipt-line-price">
+            <strong class="money">${money(itemMath.total)}</strong>
+            <small>Tax ${money(itemMath.tax)}</small>
+          </div>
+        `;
+        fields.receiptItems.appendChild(line);
+      });
+    }
+
+    function renderSavedBills() {
+      fields.savedList.innerHTML = "";
+      fields.statSaved.textContent = state.savedBills.length;
+
+      if (!state.savedBills.length) {
+        fields.savedList.innerHTML = '<div class="empty-state">Saved bills will appear here after you click Save Bill.</div>';
+        return;
+      }
+
+      state.savedBills.slice(0, 8).forEach((bill) => {
+        const totals = totalsForBill(bill);
+        const item = document.createElement("div");
+        item.className = "saved-bill";
+        item.innerHTML = `
+          <div>
+            <strong>${escapeHtml(bill.invoiceNo || "Invoice")}</strong>
+            <span>${escapeHtml(bill.customerName || "Customer")} | ${money(totals.grand)} | ${formatDate(bill.invoiceDate)}</span>
+          </div>
+          <div class="row-actions">
+            <button class="btn small secondary" type="button" data-saved="load" data-id="${bill.id}">Open</button>
+            <button class="btn small warn" type="button" data-saved="delete" data-id="${bill.id}">Delete</button>
+          </div>
+        `;
+        fields.savedList.appendChild(item);
+      });
+    }
+
+    function totalsForBill(bill) {
+      const previousItems = state.items;
+      state.items = Array.isArray(bill.items) ? bill.items : [];
+      const previousValues = {
+        membership: fields.membership.value,
+        couponDiscount: fields.couponDiscount.value,
+        serviceCharge: fields.serviceCharge.value,
+        premiumPacking: fields.premiumPacking.checked,
+        roundOff: fields.roundOff.value,
+        amountPaid: fields.amountPaid.value
+      };
+
+      fields.membership.value = String(bill.membership ?? "0");
+      fields.couponDiscount.value = Number(bill.couponDiscount ?? 0);
+      fields.serviceCharge.value = Number(bill.serviceCharge ?? 0);
+      fields.premiumPacking.checked = Boolean(bill.premiumPacking);
+      fields.roundOff.value = Number(bill.roundOff ?? 0);
+      fields.amountPaid.value = Number(bill.amountPaid ?? 0);
+      const totals = calculateTotals();
+
+      state.items = previousItems;
+      fields.membership.value = previousValues.membership;
+      fields.couponDiscount.value = previousValues.couponDiscount;
+      fields.serviceCharge.value = previousValues.serviceCharge;
+      fields.premiumPacking.checked = previousValues.premiumPacking;
+      fields.roundOff.value = previousValues.roundOff;
+      fields.amountPaid.value = previousValues.amountPaid;
+      return totals;
+    }
+
+    function render() {
+      const bill = getBillData();
+      const totals = calculateTotals();
+
+      fields.receiptLogo.textContent = getInitials(bill.storeName);
+      fields.receiptStore.textContent = bill.storeName;
+      fields.receiptAddress.textContent = bill.storeAddress || "Store address";
+      fields.receiptContact.textContent = [bill.storePhone, bill.storeGst].filter(Boolean).join(" | ") || "Store contact";
+      fields.receiptInvoice.textContent = bill.invoiceNo;
+      fields.receiptDate.textContent = formatDate(bill.invoiceDate);
+      fields.receiptPaymentMode.textContent = bill.paymentMode;
+      fields.receiptCustomer.textContent = bill.customerName;
+      fields.receiptCustomerPhone.textContent = bill.customerPhone ? "WhatsApp: " + bill.customerPhone : "No WhatsApp number";
+      fields.receiptCashier.textContent = bill.cashierName;
+      fields.receiptItemCount.textContent = `${state.items.length} ${state.items.length === 1 ? "item" : "items"}`;
+      fields.subtotalText.textContent = money(totals.subtotal);
+      fields.discountText.textContent = money(totals.itemDiscount);
+      fields.memberDiscountText.textContent = money(totals.memberDiscount);
+      fields.couponText.textContent = money(totals.couponDiscount);
+      fields.taxText.textContent = money(totals.tax);
+      fields.chargesText.textContent = money(totals.charges);
+      fields.roundOffText.textContent = money(totals.roundOff);
+      fields.grandText.textContent = money(totals.grand);
+      fields.paidText.textContent = money(totals.paid);
+      fields.balanceText.textContent = totals.change > 0 ? "Change " + money(totals.change) : money(totals.balance);
+      fields.paymentText.textContent = `Payment: ${bill.paymentMode}${bill.transactionId ? " | Ref: " + bill.transactionId : ""}`;
+      fields.notesText.textContent = bill.billNotes || "Thank you for shopping with us.";
+      fields.statItems.textContent = String(state.items.length);
+      fields.statTotal.textContent = money(totals.grand);
+      fields.balancePill.textContent = totals.change > 0 ? "Change " + money(totals.change) : "Balance " + money(totals.balance);
+
+      renderItemsTable();
+      renderReceiptItems();
+      renderSavedBills();
+    }
+
+    function escapeHtml(value) {
+      const div = document.createElement("div");
+      div.textContent = String(value ?? "");
+      return div.innerHTML;
+    }
+
+    function resetItemForm() {
+      state.editingId = null;
+      fields.itemName.value = "";
+      fields.itemQty.value = "1";
+      fields.itemPrice.value = "";
+      fields.itemDiscount.value = "0";
+      fields.itemTax.value = "18";
+      fields.itemSubmit.textContent = "Add Item";
+      fields.itemName.focus();
+    }
+
+    function addOrUpdateItem(event) {
+      event.preventDefault();
+
+      const item = {
+        id: state.editingId || makeId("item"),
+        name: cleanText(fields.itemName.value),
+        qty: Math.max(0.01, numberValue(fields.itemQty, 1)),
+        price: Math.max(0, numberValue(fields.itemPrice, 0)),
+        discount: Math.min(100, Math.max(0, numberValue(fields.itemDiscount))),
+        tax: Math.max(0, numberValue(fields.itemTax, 0))
+      };
+
+      if (!item.name) {
+        showToast("Please enter an item name.");
+        fields.itemName.focus();
+        return;
+      }
+
+      if (state.editingId) {
+        state.items = state.items.map((existing) => existing.id === state.editingId ? item : existing);
+        showToast("Item updated.");
+      } else {
+        state.items.push(item);
+        showToast("Item added.");
+      }
+
+      resetItemForm();
+      render();
+    }
+
+    function handleItemAction(event) {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const action = button.dataset.action;
+      const item = state.items.find((entry) => entry.id === id);
+      if (!item) return;
+
+      if (action === "edit") {
+        state.editingId = id;
+        fields.itemName.value = item.name;
+        fields.itemQty.value = item.qty;
+        fields.itemPrice.value = item.price;
+        fields.itemDiscount.value = item.discount;
+        fields.itemTax.value = item.tax;
+        fields.itemSubmit.textContent = "Update Item";
+        fields.itemName.focus();
+        showToast("Editing selected item.");
+      }
+
+      if (action === "copy") {
+        state.items.push({ ...item, id: makeId("item"), name: item.name + " Copy" });
+        render();
+        showToast("Item copied.");
+      }
+
+      if (action === "delete") {
+        state.items = state.items.filter((entry) => entry.id !== id);
+        if (state.editingId === id) resetItemForm();
+        render();
+        showToast("Item deleted.");
+      }
+    }
+
+    function saveBill() {
+      if (!state.items.length) {
+        showToast("Add at least one item before saving.");
+        return;
+      }
+
+      const bill = getBillData();
+      bill.id = makeId("bill");
+      state.savedBills = [bill, ...state.savedBills.filter((saved) => saved.invoiceNo !== bill.invoiceNo)].slice(0, 30);
+      persistSavedBills();
+      render();
+      showToast("Bill saved. You can open and edit it anytime.");
+    }
+
+    function persistSavedBills() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.savedBills));
+    }
+
+    function loadSavedBills() {
+      try {
+        const bills = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        state.savedBills = Array.isArray(bills) ? bills : [];
+      } catch {
+        state.savedBills = [];
+      }
+    }
+
+    function handleSavedAction(event) {
+      const button = event.target.closest("button[data-saved]");
+      if (!button) return;
+
+      const bill = state.savedBills.find((entry) => entry.id === button.dataset.id);
+      if (!bill) return;
+
+      if (button.dataset.saved === "load") {
+        applyBillData(bill);
+        showToast("Saved bill opened for editing.");
+      }
+
+      if (button.dataset.saved === "delete") {
+        state.savedBills = state.savedBills.filter((entry) => entry.id !== bill.id);
+        persistSavedBills();
+        render();
+        showToast("Saved bill deleted.");
+      }
+    }
+
+    function startNewBill() {
+      state.items = [];
+      state.editingId = null;
+      fields.invoiceNo.value = nextInvoiceNo();
+      setDefaultDate();
+      fields.customerName.value = "Walk-in Customer";
+      fields.customerPhone.value = "";
+      fields.paymentMode.value = "Cash";
+      fields.transactionId.value = "";
+      fields.roundOff.value = "0";
+      fields.serviceCharge.value = "0";
+      fields.couponDiscount.value = "0";
+      fields.amountPaid.value = "0";
+      fields.membership.value = "0";
+      fields.premiumPacking.checked = false;
+      resetItemForm();
+      render();
+      showToast("New bill is ready.");
+    }
+
+    function loadSampleItems() {
+      state.items = [
+        { id: makeId("item"), name: "Premium Cotton T-Shirt", qty: 2, price: 799, discount: 5, tax: 12 },
+        { id: makeId("item"), name: "Sports Shoes", qty: 1, price: 2499, discount: 10, tax: 18 },
+        { id: makeId("item"), name: "Chocolate Gift Pack", qty: 3, price: 299, discount: 0, tax: 5 }
+      ];
+      fields.amountPaid.value = "5000";
+      render();
+      showToast("Sample items loaded.");
+    }
+
+    function clearItems() {
+      state.items = [];
+      resetItemForm();
+      render();
+      showToast("All items cleared.");
+    }
+
+    function buildWhatsAppMessage() {
+      const bill = getBillData();
+      const totals = calculateTotals();
+      const lines = [
+        `${bill.storeName}`,
+        `Invoice: ${bill.invoiceNo}`,
+        `Date: ${formatDate(bill.invoiceDate)}`,
+        `Customer: ${bill.customerName}`,
+        "",
+        "Items:"
+      ];
+
+      state.items.forEach((item, index) => {
+        const itemMath = calculateItem(item);
+        lines.push(`${index + 1}. ${item.name} - ${item.qty} x ${money(Number(item.price) || 0)} = ${money(itemMath.total)}`);
+      });
+
+      lines.push(
+        "",
+        `Subtotal: ${money(totals.subtotal)}`,
+        `Discount: ${money(totals.itemDiscount + totals.memberDiscount + totals.couponDiscount)}`,
+        `Tax: ${money(totals.tax)}`,
+        `Charges: ${money(totals.charges)}`,
+        `Grand Total: ${money(totals.grand)}`,
+        `Paid: ${money(totals.paid)}`,
+        totals.change > 0 ? `Change: ${money(totals.change)}` : `Balance: ${money(totals.balance)}`,
+        `Payment: ${bill.paymentMode}${bill.transactionId ? " | Ref: " + bill.transactionId : ""}`,
+        "",
+        bill.billNotes || "Thank you for shopping with us."
+      );
+
+      return lines.join("\n");
+    }
+
+    function normalizeWhatsAppNumber(value) {
+      let digits = String(value || "").replace(/\D/g, "");
+      if (digits.length === 10) digits = "91" + digits;
+      return digits;
+    }
+
+    function sendWhatsApp() {
+      if (!state.items.length) {
+        showToast("Add items before sending the bill.");
+        return;
+      }
+
+      const phone = normalizeWhatsAppNumber(fields.customerPhone.value);
+      if (phone.length < 10) {
+        showToast("Enter a valid customer WhatsApp number.");
+        fields.customerPhone.focus();
+        return;
+      }
+
+      const message = encodeURIComponent(buildWhatsAppMessage());
+      window.open(`https://wa.me/${phone}?text=${message}`, "_blank", "noopener,noreferrer");
+    }
+
+    function printBill() {
+      if (!state.items.length) {
+        showToast("Add items before printing the bill.");
+        return;
+      }
+
+      render();
+      window.print();
+    }
+
+    function setupLiveInputs() {
+      document.querySelectorAll("input, select, textarea").forEach((element) => {
+        element.addEventListener("input", render);
+        element.addEventListener("change", render);
+      });
+    }
+
+    function bindEvents() {
+      fields.itemForm?.addEventListener("submit", addOrUpdateItem);
+      fields.itemsBody.addEventListener("click", handleItemAction);
+      fields.savedList.addEventListener("click", handleSavedAction);
+      fields.saveBillBtn.addEventListener("click", saveBill);
+      fields.newBillBtn.addEventListener("click", startNewBill);
+      fields.sampleBtn.addEventListener("click", loadSampleItems);
+      fields.clearItemsBtn.addEventListener("click", clearItems);
+      fields.printBtn.addEventListener("click", printBill);
+      fields.whatsappBtn.addEventListener("click", sendWhatsApp);
+      setupLiveInputs();
+    }
+
+    function init() {
+      loadSavedBills();
+      if (!fields.invoiceNo.value) fields.invoiceNo.value = nextInvoiceNo();
+      if (!fields.invoiceDate.value) setDefaultDate();
+      bindEvents();
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
